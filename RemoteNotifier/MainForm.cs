@@ -10,7 +10,7 @@ using System.Windows.Forms;
 using System.IO;
 using System.Diagnostics;
 
-namespace ResumeNotifier
+namespace RemoteNotifier
 {
     public partial class MainFrm : Form
     {

@@ -1,4 +1,4 @@
-﻿namespace ResumeNotifier
+﻿namespace RemoteNotifier
 {
     partial class CommandForm
     {

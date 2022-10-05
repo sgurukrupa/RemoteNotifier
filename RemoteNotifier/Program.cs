@@ -1,4 +1,4 @@
-﻿using ResumeNotifier.Properties;
+﻿using RemoteNotifier.Properties;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -6,7 +6,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-namespace ResumeNotifier
+namespace RemoteNotifier
 {
     internal static class Program
     {
