@@ -12,6 +12,8 @@ using System.Diagnostics;
 using System.Threading;
 using System.Net.Sockets;
 using System.Net;
+using System.Media;
+using RemoteNotifier.Properties;
 
 namespace RemoteNotifier
 {
@@ -22,26 +24,34 @@ namespace RemoteNotifier
         private Thread serverThread;
         private Process process;
 
+        private void StopProcess()
+        {
+            if (process != null)
+            {
+                try
+                {
+                    process.Kill();
+                    process.WaitForExit();
+                }
+                catch (Exception)
+                { }
+                process.Dispose();
+                process = null;
+            }
+        }
+
         const int serverPort = 3000;
 
         public void RunCommand()
         {
             try
             {
-                if (process != null)
-                {
-                    process.Kill();
-                    process.WaitForExit();
-                    process.Dispose();
-                    process = null;
-                }
-
+                StopProcess();
                 if (!commandForm.HasCommand)
                 {
                     return;
                 }
 
-                //process = Process.Start(commandForm.CommandText, commandForm.ArgsText);
                 process = Process.Start(new ProcessStartInfo
                 {
                     FileName = commandForm.CommandText,
@@ -57,9 +67,13 @@ namespace RemoteNotifier
             }
         }
 
+        private readonly SoundPlayer sound;
+        private int notificationCount = 0;
+
         public MainFrm()
         {
             InitializeComponent();
+            sound = new SoundPlayer(Resources.Alarm01);
         }
 
         const int WM_POWERBROADCAST = 0x218;
@@ -98,18 +112,12 @@ namespace RemoteNotifier
 
         public void SetupService()
         {
-            if (server != null)
-            {
-                server.Dispose();
-            }
-            if (serverThread != null)
-            {
-                serverThread.Abort();
-            }
+            server?.Dispose();
+            serverThread?.Abort();
             server = new UdpClient(serverPort);
-            RunCommand();
             serverThread = new Thread(new ThreadStart(ReceiveMessages));
             serverThread.Start();
+            RunCommand();
         }
 
         private void MainFrm_Load(object sender, EventArgs e)
@@ -129,8 +137,24 @@ namespace RemoteNotifier
             while (true)
             {
                 var status = Encoding.ASCII.GetString(server.Receive(ref client));
-                Task.Run(() => MessageBox.Show(status));
+                Task.Run(() =>
+                {
+                    if (Interlocked.Increment(ref notificationCount) == 1)
+                    {
+                        sound.PlayLooping();
+                    }
+                    MessageBox.Show(status);
+                    if (Interlocked.Decrement(ref notificationCount) == 0)
+                    {
+                        sound.Stop();
+                    }
+                });
             }
+        }
+
+        private void MainFrm_FormClosed(object sender, FormClosedEventArgs e)
+        {
+            StopProcess();
         }
     }
 }

@@ -50,8 +50,10 @@ namespace RemoteNotifier
 
             private void Modify(object sender, EventArgs e)
             {
-                mainFrm.commandForm.ShowDialog();
-                mainFrm.RunCommand();
+                if (mainFrm.commandForm.ShowDialog() == DialogResult.OK)
+                {
+                    mainFrm.RunCommand();
+                }
             }
         }
     }
